@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="initial-scale=1">
+<title>CSCB09 2020 Summer Assignment 3</title>
+<style>
+h1, h2, h3 { color: blue; }
+kbd { font-family: monospace; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>CSCB09 2020 Summer Assignment 3</h1>
+
+<p>Due: Sunday August 2 2020 midnight
+
+<p>This assignment is worth 12%.
+
+<p>In this assignment, you will practice making child processes, exec'ing other
+programs, and connecting child processes with pipes.
+
+<p>As usual, you should aim for reasonably efficient algorithms and reasonably
+organized, comprehensible code.
+
+
+<h2>Process Substitution</h2>
+
+<p>bash has a convenient extra feature “process substitution” not in sh. In the
+simplest form it goes:
+
+<pre>
+command1 &lt;(command2 args)
+</pre>
+
+<p>command1 will see a command line argument. We users don't see it, but
+command1 does. Let's call it F because I need to refer to it later. Normally,
+command1 treats F as a filename and open it for reading (only).
+
+<p>Normally, command2 writes data to stdout. Here is the magical part: Whenever
+command1 reads from “file” F, it sees data from command2's stdout!
+
+<p>Many students used this feature to evade learning a required topic. The prof
+is not pleased. The prof's revenge is to make you implement this feature so you
+have a harder topic to learn!
+
+<p>(On the bright side, haven't you always wondered how bash pulls off this
+trick?)
+
+
+<h3>A Discovery (optional, not graded)</h3>
+
+<p>Write a shell script or C program that prints the command line arguments it
+sees. It doesn't actually need to read any file. Use it as command1. This is to
+discover the secret F to help find out what's going on. Example bash command:
+
+<pre>
+./yourprog &lt;(echo hello)
+</pre>
+
+<p>What do you find? What do you think it means?
+
+
+<h3>Theory</h3>
+
+<p>/dev/fd is a special directory (not on real disk) provided/emulated by the
+kernel. Whenever a process P looks into it, P finds numeric filenames, and the
+numbers are exactly P's current open file descriptors. And if P reads from, say,
+/dev/fd/0, it's equivalent to reading from file descriptor 0.
+
+<p>(Naturally, different processes see different content, since the kernel is
+making it up on the fly, tailor-made to the process that asks.)
+
+<p>With this friendly service from the kernel, bash can pull off its trick.  (It
+is still a pipe.)  We assume that command1 and command2 are executable program
+pathnames in this assignment, even though bash is much more flexible than that.
+
+<ol>
+  <li><p>Create a pipe. Let's say the read-end FD is 42, write-end FD is 43, for
+    the sake of concreteness, but this is just an example.
+
+  <li><p>Create a child process for command1. Exec command1 with command line
+    argument /dev/fd/42 (the secret F above).
+
+  <li><p>Create another child process for command2. Use dup2 to redirect
+    stdout to the write end of the pipe, before exec'ing.
+
+  <li><p>All 3 processes should also close certain unneeded file descriptors, as
+    discussed in the lecture concerning pipe hygiene. It is your job to figure
+    out which and when.
+</ol>
+
+
+<h3>Implementation</h3>
+
+<p>The function you will implement (in procsub.c) is:
+
+<pre>
+int procsub(const char *prog1, const char *prog2, char *prog2_argv[], int status[])
+</pre>
+
+<p><code>prog1</code> is the pathname for command1. That program expects a
+filename argument, and will read that file. (<code>execlp</code> is a good way
+to exec it.) It may still do other things: use stdin, stdout, stderr, other
+files.
+
+<p><code>prog2</code> is the pathname for command2. That program will write data
+to stdout.  It may still do other things: use stdin, stderr, other files.
+
+<p><code>prog2_argv</code> are the arguments for prog2. (It is set up so that
+you can't go wrong with a simple <code>execvp(prog2, prog2_argv)</code>.)
+
+<p>The function should do the steps outlined in the theory section above. In
+addition:
+
+<p>The parent should wait for both children to terminate, and store the wait
+statuses in the <code>status</code> array (the last parameter).
+<code>status[0]</code> is for prog1, <code>status[1]</code> is for prog2.
+
+<p>The function, run as parent, should return 0 if all of the above tasks for
+the parent are successful and done.
+
+
+<h3>Error handling</h3>
+
+<p>Parent: If <code>pipe</code> or <code>fork</code> fails, return -1
+immediately.
+
+<p>Either child: If exec fails, exit with exit code 37. Error message is up
+to you, but send any to stderr.
+
+<p>Other errors: You may ignore or handle, your choice.  If you handle, send any
+error message to stderr, and parent returns -1, child exits with exit code 37.
+
+
+<!-- <h3>Clarifications, Errata</h3> -->
+
+
+</body>
+</html>

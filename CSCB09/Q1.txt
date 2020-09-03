@@ -1,0 +1,12 @@
+1a, you would want a hard link because if you delete a soft link, it points to a nonexistent file. The hard link is a mirror copy of the original.
+
+1b, the symlink will point to the original file. You want to use symlink here.
+
+C, Manfred did not use prog2 at all in his code and Natasha did not use prog1 at all in his code. This is the problem. Also the first arg should be a path for excel.
+
+D, sig_IGN will ignore the sigpipe. Tom will ignore the signal if select block. Jerry will  do the same, but can give error message.
+
+E, or:zero
+Xor one
+And else
+And comp

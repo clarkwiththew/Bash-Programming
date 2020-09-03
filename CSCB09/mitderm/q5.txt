@@ -1,0 +1,21 @@
+a) Sizeof s= 5*8+2*5=40+10=50
+Sizeof lingling= size of the largest type = 5*8=40
+
+B)
+What is the type of q? double *
+
+ What
+is the type of y?
+t
+
+C)wrong because getchar() returns an int, not a char. Cannot assign char c to int output of getchar().
+
+D)This is run with stdin redirected from an empty file. It mistakenly reports “not empty”.
+Help the beginner by briefly answering: Why is this approach ineffective? And what is
+a correct approach?
+Not effective because it reads a file stream. 
+feof:
+This function returns a non-zero value when End-of-File indicator associated with the stream is set, else zero is returned.
+
+We do not have an eof, so this function does not know when there is end of file, so zero is returned.
+

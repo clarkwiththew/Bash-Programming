@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>    /* Internet domain header */
+#include <arpa/inet.h>     /* only needed on my mac */
+#include <sys/select.h>
+/* According to earlier standards */
+#include <sys/time.h>
+#include <sys/types.h>
+//#include <sys/epoll.h>
+
+int main(int argc, char *argv[]) {
+    int portnum = atoi(argv[1]);
+
+    char server_message[256]="\n";
+    int server_socket;
+    server_socket = socket(AF_INET, SOCK_STREAM, 0);
+
+    if(server_socket==-1){exit(1);}
+    
+    struct sockaddr_in server_address;
+    server_address.sin_family=AF_INET;
+    server_address.sin_port=htons(portnum);
+    server_address.sin_addr.s_addr=INADDR_ANY;
+    
+    
+    int bindVal=bind(server_socket, (struct sockaddr*) &server_address, sizeof(server_address));
+    
+    if(bindVal==-1){exit(1);}
+    int listval=listen(server_socket, 5);
+    if(listval==-1){exit(1);}
+
+    fd_set currentSock, readySock;
+    FD_ZERO(&currentSock);
+    FD_SET(server_socket,&currentSock);
+    
+    while(1){
+        readySock=currentSock;
+        int selecval=select(FD_SETSIZE,&readySock,NULL,NULL,NULL);
+        if (selecval==-1) {exit(1);}
+        for(int i=0;i<FD_SETSIZE;i++){
+            if(FD_ISSET(i,&readySock)){
+                if(i==server_socket){
+                    int client_socket;
+                    client_socket=accept(server_socket, NULL, NULL);
+                    if(client_socket==-1){exit(1);}
+                    FD_SET(client_socket,&currentSock);
+                }
+                else{            char line[80];
+                                read(i, line, 76);
+                                //if read does not have newline, ignore
+//                                if(strcmp(&line[76],"/n")!=0){
+//                                    //ignore
+//                                }
+                            //    if(){//multiple newlines
+                            //        //ignore
+                            //    }
+                                
+                                char start [2];
+                                int length=strlen(line);
+                                sprintf(start,"%c",line[0]);
+
+                                
+                                if(strcmp(start,"!")==0){
+                                    //new post
+                                    char buf [76];
+                                    strncpy(buf,line+1,length);
+                                    buf[length] = '\0';
+                                    strcpy(server_message,buf);
+                                }
+                                
+                                else if(strcmp(start,"?")==0){
+                                    int sendval=send(i, server_message,sizeof(server_message),0);
+                                    if(sendval==-1){exit(1);}
+                                    
+                                }
+                    //            else{
+                    //                //ignore
+                    //
+                    //            }
+                    FD_CLR(i,&currentSock);
+                }
+            }
+        }
+        
+
+                    
+
+    }
+    
+
+
+    
+    
+
+    
+    
+    //Clients can close connections just when the server sends replies. By default this kills the server. You must not let this happen.
+    
+    
+    //if (client close) { server close}
+    return 0;
+}
+//./a.out 1234(inside the server)
+//./a.out 1234
+//nc -v localhost 1234
+//!hello
+//?
+

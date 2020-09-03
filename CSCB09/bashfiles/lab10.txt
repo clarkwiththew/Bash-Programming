@@ -1,0 +1,56 @@
+
+Your jobs:
+
+1. How do you find the PIDs of those processes? (One of them plays a trick to try to be harder to find!)
+2. How do you terminate them?
+Keep in mind that a lot of other students may have similarly named processes too (when everyone is doing the same assignment on the same server). You must find and terminate those belonging to you only.
+
+What to hand in: Write down your command(s) and/or method(s) in a text file lab10.txt and submit it. It will be marked by a TA.
+
+
+
+1. You can find the PID by running the ps command.
+  PID TTY           TIME CMD
+74815 ttys000    0:00.05 -bash
+74844 ttys000    0:00.00 ./a.out
+74845 ttys000    0:00.00 ./a.out
+74847 ttys000    0:00.00 ./a.out
+74848 ttys000    0:00.00 ./a.out
+74850 ttys000    0:00.10 less
+
+You can find more processes by running htop and reading the pid from htop or by running 
+ps aux.
+
+junhengsaccount  74848   0.0  0.0  4277376    376 s000  S    11:44am   0:00.00 ./a.out
+junhengsaccount  74847   0.0  0.0  4268160    364 s000  S    11:44am   0:00.00 ./a.out
+junhengsaccount  74846   0.0  0.0  4271232    400   ??  Ss   11:44am   0:00.00 ./a.out
+junhengsaccount  74845   0.0  0.0  4279424    400 s000  S    11:44am   0:00.00 ./a.out
+junhengsaccount  74844   0.0  0.0  4277376    376 s000  S    11:44am   0:00.00 ./a.out
+
+One of them is harder to find because setsid() call was used. This creates a new session when a calling process not be the process group leader. Thus the ps command does not appear. Use: ps x.
+ps only shows processes with the same user terminal and same identifier as the one running it. Background processes related to the current terminal will also shown. 
+(from man page)
+
+
+2. You can terminate it by sending a kill. Use kill PID, so if the PID is 74848, terminate by kill 74848.
+
+You find the ones belonging to you by ps x:
+x - that this option causes ps to list all
+                       processes owned by you (same EUID as ps), or to list
+                       all processes when used together with the a option.
+(from man page)
+
+
+You terminate the ones that only belong to you since you can only terminate processes that don't belong to you if you are the root.
+Otherwise use Use pkill -U UID or pkill -u UID, where:
+ -u, --euid euid,...
+         Only match processes whose effective user ID is listed.
+         Either the numerical or symbolical value may be used.
+    -U, --uid uid,...
+         Only match processes whose real user ID is listed.  Either the
+         numerical or symbolical value may be used. 
+(from man page)
+
+
+
+
