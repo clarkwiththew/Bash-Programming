@@ -1,2 +1,0 @@
-ssh wangj930@mathlab.utsc.utoronto.ca
-sftp wangj930@mathlab.utsc.utoronto.ca
